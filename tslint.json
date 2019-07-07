@@ -1,9 +1,17 @@
 {
   "defaultSeverity": "error",
-  "extends": [
-      "@ephox/tslint-rules/tslint.json"
-  ],
+  "extends": ["@ephox/tslint-rules/tslint.json"],
   "jsRules": {},
-  "rules": {},
-  "rulesDirectory": []
+  "rules": {
+    "quotemark": false,
+    "space-before-function-paren": false,
+    "object-literal-shorthand": false,
+    "no-console": false,
+    "object-literal-key-quotes": false,
+    "arrow-parens": false,
+    "no-unused-variable": false,
+    "no-unused-expression": false,
+    "variable-name": false
+  },
+  "rulesDirectory": ["node_modules/codelyzer"]
 }

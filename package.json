@@ -19,6 +19,7 @@
     "@ephox/swag": "latest",
     "@ephox/tslint-rules": "latest",
     "awesome-typescript-loader": "^5.2.1",
+    "codelyzer": "4.2.1",
     "grunt": "^1.0.3",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-concat": "^1.0.1",
@@ -50,5 +51,8 @@
   "main": "./lib/main/ts/api/Main.js",
   "module": "./lib/main/ts/api/Main.js",
   "types": "./lib/main/ts/api/Main.d.ts",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "katex": "0.10.2"
+  }
 }

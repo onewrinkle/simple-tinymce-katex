@@ -1,50 +1,60 @@
-const { CheckerPlugin } = require('awesome-typescript-loader');
-const LiveReloadPlugin = require('webpack-livereload-plugin');
-const path = require('path');
-const swag = require('@ephox/swag');
+const { CheckerPlugin } = require("awesome-typescript-loader");
+const LiveReloadPlugin = require("webpack-livereload-plugin");
+const path = require("path");
+const swag = require("@ephox/swag");
 
 module.exports = function(grunt) {
-  var packageData = grunt.file.readJSON('package.json');
-  var BUILD_VERSION = packageData.version + '-' + (process.env.BUILD_NUMBER ? process.env.BUILD_NUMBER : '0');
-  const libPluginPath = 'lib/main/ts/Plugin.js';
-  const scratchPluginPath = 'scratch/compiled/plugin.js';
-  const scratchPluginMinPath = 'scratch/compiled/plugin.min.js';
-  const tsDemoSourceFile = path.resolve('src/demo/ts/Demo.ts');
-  const jsDemoDestFile = path.resolve('scratch/compiled/demo.js');
+  var packageData = grunt.file.readJSON("package.json");
+  var BUILD_VERSION =
+    packageData.version +
+    "-" +
+    (process.env.BUILD_NUMBER ? process.env.BUILD_NUMBER : "0");
+  const libPluginPath = "lib/main/ts/Plugin.js";
+  const scratchPluginPath = "scratch/compiled/plugin.js";
+  const scratchPluginMinPath = "scratch/compiled/plugin.min.js";
+  const tsDemoSourceFile = path.resolve("src/demo/ts/Demo.ts");
+  const jsDemoDestFile = path.resolve("scratch/compiled/demo.js");
 
   grunt.initConfig({
     pkg: packageData,
 
     clean: {
-      dirs: [ 'dist', 'scratch' ]
+      dirs: ["dist", "../../pwa/src/assets/tinymce/plugins/latex/", "scratch"],
+      options: {
+        force: true
+      }
     },
 
     tslint: {
       options: {
-        configuration: 'tslint.json'
+        configuration: "tslint.json"
       },
-      plugin: ['src/**/*.ts']
+      plugin: ["src/**/*.ts"]
     },
 
     shell: {
-      command: 'tsc'
+      command: "tsc"
     },
 
     rollup: {
       options: {
         treeshake: true,
-        name: 'plugin',
-        format: 'iife',
-        banner: '(function () {',
-        footer: 'plugin();})();',
-        onwarn: swag.onwarn,
+        name: "plugin",
+        format: "iife",
+        banner: "(function () {",
+        footer: "plugin();})();",
+        onwarn: (warning, warn) => {
+          if (warning.code === "THIS_IS_UNDEFINED") return;
+          else swag.onwarn(warning);
+        },
         plugins: [
           swag.nodeResolve({
             basedir: __dirname,
             prefixes: {}
           }),
           swag.remapImports()
-        ]
+        ],
+        external: ["katex"]
       },
       plugin: {
         files: [
@@ -72,8 +82,8 @@ module.exports = function(grunt) {
         options: {
           process: function(src) {
             var buildSuffix = process.env.BUILD_NUMBER
-              ? '-' + process.env.BUILD_NUMBER
-              : '';
+              ? "-" + process.env.BUILD_NUMBER
+              : "";
             return src.replace(
               /@BUILD_NUMBER@/g,
               packageData.version + buildSuffix
@@ -82,12 +92,12 @@ module.exports = function(grunt) {
         },
         // scratchPluginMinPath is used twice on purpose, all outputs will be minified for premium plugins
         files: {
-          'dist/latex/plugin.js': [
-            'src/text/license-header.js',
+          "../../pwa/src/assets/tinymce/plugins/latex/plugin.js": [
+            "src/text/license-header.js",
             scratchPluginMinPath
           ],
-          'dist/latex/plugin.min.js': [
-            'src/text/license-header.js',
+          "../../pwa/src/assets/tinymce/plugins/latex/plugin.min.js": [
+            "src/text/license-header.js",
             scratchPluginMinPath
           ]
         }
@@ -98,41 +108,51 @@ module.exports = function(grunt) {
       css: {
         files: [
           {
-            cwd: 'src/text',
-            src: ['license.txt'],
-            dest: 'dist/latex',
+            cwd: "src/text",
+            src: ["license.txt"],
+            dest: "../../pwa/src/assets/tinymce/plugins/latex",
             expand: true
           },
-          { src: ['changelog.txt'], dest: 'dist/latex', expand: true }
+          {
+            src: ["changelog.txt"],
+            dest: "../../pwa/src/assets/tinymce/plugins/latex",
+            expand: true
+          },
+          {
+            cwd: "src/assets", // set working folder / root to copy
+            src: "**/*", // copy all files and subfolders
+            dest: "../../pwa/src/assets/tinymce/plugins/latex/assets", // destination folder
+            expand: true // required when using cwd
+          }
         ]
       }
     },
 
     webpack: {
       options: {
-        mode: 'development',
+        mode: "development",
         watch: true
       },
       dev: {
         entry: tsDemoSourceFile,
-        devtool: 'source-map',
+        devtool: "source-map",
 
         resolve: {
-          extensions: ['.ts', '.js']
+          extensions: [".ts", ".js"]
         },
 
         module: {
           rules: [
             {
               test: /\.js$/,
-              use: ['source-map-loader'],
-              enforce: 'pre'
+              use: ["source-map-loader"],
+              enforce: "pre"
             },
             {
               test: /\.ts$/,
               use: [
                 {
-                  loader: 'ts-loader',
+                  loader: "ts-loader",
                   options: {
                     transpileOnly: true,
                     experimentalWatchApi: true
@@ -153,21 +173,24 @@ module.exports = function(grunt) {
     }
   });
 
-  require('load-grunt-tasks')(grunt);
-  grunt.loadNpmTasks('@ephox/swag');
+  require("load-grunt-tasks")(grunt);
+  grunt.loadNpmTasks("@ephox/swag");
 
-  grunt.registerTask('version', 'Creates a version file', function () {
-    grunt.file.write('dist/latex/version.txt', BUILD_VERSION);
+  grunt.registerTask("version", "Creates a version file", function() {
+    grunt.file.write(
+      "../../pwa/src/assets/tinymce/plugins/latex/version.txt",
+      BUILD_VERSION
+    );
   });
 
-  grunt.registerTask('default', [
-    'clean',
-    'tslint',
-    'shell',
-    'rollup',
-    'uglify',
-    'concat',
-    'copy',
-    'version'
+  grunt.registerTask("default", [
+    "clean",
+    "tslint",
+    "shell",
+    "rollup",
+    "uglify",
+    "concat",
+    "copy",
+    "version"
   ]);
 };
